@@ -1,0 +1,56 @@
+# Central configuration. Relative paths are resolved against this file's folder.
+seed: 42
+
+paths:
+  data_dir: data/genres_original
+  artifacts_dir: artifacts
+  results_dir: results
+
+audio:
+  sample_rate: 22050
+  duration: 30          # seconds; every song is padded / center-cropped to this
+  n_mfcc: 20
+  n_fft: 2048
+  hop_length: 512
+
+# 5-genre reproduction setting. For the full dataset use:
+# [blues, classical, country, disco, hiphop, jazz, metal, pop, reggae, rock]
+genres: [blues, classical, hiphop, metal, pop]
+
+split:
+  test_size: 0.2
+  random_state: 42      # split is created ONCE (split.json) and reused by every model
+
+classical:
+  cv_folds: 5           # stratified CV on the TRAIN set only (hyper-parameter tuning)
+  scoring: f1_macro
+  pca_options: [null, 0.95]   # null = no PCA; float = fraction of variance retained
+  logistic_regression:
+    C: [0.1, 1, 10]
+    max_iter: 3000
+  svm:                  # RBF kernel, probability=True
+    C: [1, 10, 100]
+    gamma: [scale, 0.01]
+  random_forest:
+    n_estimators: [200]
+    max_depth: [5, 7, 10, null]
+  gaussian:
+    kind: lda           # lda | qda  (scikit-learn stand-ins for GDA)
+    lda_shrinkage: [null, auto]
+    qda_reg_param: [0.0, 0.1, 0.5]
+
+cnn:
+  filters: [32, 64]
+  kernel_size: 8
+  dilation_rates: [2, 4]
+  pool_size: 4
+  pool_type: avg        # avg | max
+  conv_dropout: 0.25
+  dense_units: 64
+  dense_dropout: 0.5
+  learning_rate: 0.001
+  batch_size: 32
+  epochs: 100
+  val_size: 0.15        # carved out of the TRAIN set; test set is never used for training
+  early_stopping_patience: 15
+  reduce_lr_patience: 5
